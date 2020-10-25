@@ -1,0 +1,77 @@
+{
+    "builders": [
+      {
+        "name": "base",
+        "type": "hyperv-iso",
+        "vm_name": "CentOS82",
+        "temp_path": ".",
+        "iso_urls": [
+          "{{ user `iso_disk` }}",
+          "{{ user `iso_url`}}"
+        ],
+        "iso_checksum": "{{user `iso_checksum_type`}}:{{user `iso_checksum`}}",
+        "disk_size": 81920,
+        "communicator": "ssh",
+        "ssh_username": "root",
+        "ssh_password": "vagrant",
+        "ssh_timeout": "4h",
+        "ssh_port": 22,
+        "shutdown_timeout": "30m",
+        "shutdown_command": "shutdown -P now",
+        "memory": 6144,
+        "enable_mac_spoofing": "true",
+        "enable_dynamic_memory": "false",
+        "enable_virtualization_extensions": "true",
+        "differencing_disk": "false",
+        "cpus": 4,
+        "generation": 2,
+        "switch_name": "{{user `switch_name`}}",
+        "vlan_id": "{{user `vlan_id`}}",
+        "http_directory": "http",
+        "boot_wait": "10s",
+        "boot_command": ["e<wait3><down><wait><down><wait><end><wait><bs><wait><bs><wait><bs><wait><bs><wait><bs><wait>inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<wait2><leftCtrlOn>x<leftCtrlOff>"],
+        "guest_additions_mode": "disable",
+        "enable_secure_boot": false
+      }
+    ],
+    "provisioners": [
+      {
+        "type": "shell",
+        "script": "scripts\/ansible.sh",
+        "pause_before": "10s"
+      },
+      {
+        "type": "ansible-local",
+        "playbook_dir": "ansible",
+        "playbook_file": "ansible\/provision.yml",
+        "extra_arguments": [ "--tags \"boxsetup\"" ],
+        "only": ["base"]
+      }
+    ],
+    "post-processors": [
+    [
+      {
+        "type": "vagrant",
+        "output": "builds/{{.Provider}}-CentOS82-base.box",
+        "compression_level": 9,
+        "only": ["base"]
+      },
+      {
+        "type": "vagrant-cloud",
+        "box_tag": "hauptj/CentOS8Base",
+        "version": "{{user `version`}}",
+        "only": ["base"]
+      }
+    ]
+  ],
+  "variables": {
+    "iso_disk": "CentOS-8.2.2004-x86_64-dvd1.iso",
+    "iso_url": "https://mirror.rackspace.com/CentOS/8.2.2004/isos/x86_64/CentOS-8.2.2004-x86_64-dvd1.iso",
+    "iso_checksum_type": "sha256",
+    "iso_checksum": "c87a2d81d67bbaeaf646aea5bedd70990078ec252fc52f5a7d65ff609871e255",
+    "switch_name": "Default Switch",
+    "vlan_id": "",
+    "version": "0.0.3",
+    "user": "hauptj"
+  }
+}
