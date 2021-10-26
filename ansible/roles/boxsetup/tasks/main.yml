@@ -1,0 +1,37 @@
+---
+- name: Update all packages
+  dnf:
+    name: "*"
+    state: latest
+
+- name: Install cifs-utils for Vagrant SMB
+  dnf:
+    name: cifs-utils
+    state: latest
+
+- name: Create SSH directories for vagrant and root users
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.user }}"
+    group: "{{ item.user }}"
+    mode: '0700'
+  with_items:
+    - { path: /home/vagrant/.ssh, user: vagrant }
+    - { path: /root/.ssh, user: root }
+
+- name: Configure vagrant and root user SSH key
+  copy:
+    src: files/authorized_keys
+    dest: "{{ item.path }}"
+    owner: "{{ item.user }}"
+    group: "{{ item.user }}"
+    mode: '0600'
+  with_items:
+    - { path: /home/vagrant/.ssh/authorized_keys, user: vagrant }
+    - { path: /root/.ssh, user: root }
+
+- name: copy sudoers file
+  copy:
+    src: files/sudoers
+    dest: /etc/sudoers

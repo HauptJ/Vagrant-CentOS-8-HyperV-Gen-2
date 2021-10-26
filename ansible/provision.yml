@@ -1,0 +1,9 @@
+---
+- name: Provisions VagrantBox with new stuff
+  hosts: all
+  #strategy: debug
+  become: yes
+
+  roles:
+    - role: boxsetup
+      tags: boxsetup
